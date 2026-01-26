@@ -1,0 +1,12 @@
+statsmodels
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+tqdm
+torch
+torch_geometric
+setuptools
+certifi
+#-e .
