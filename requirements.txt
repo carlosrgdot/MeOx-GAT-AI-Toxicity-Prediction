@@ -9,4 +9,6 @@ torch
 torch_geometric
 setuptools
 certifi
+boto3
+dotenv
 #-e .

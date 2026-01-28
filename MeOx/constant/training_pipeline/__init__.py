@@ -1,0 +1,28 @@
+import sys,os
+import pandas as pd
+import numpy as np
+
+"""
+Defining common constants variables for training pipeline
+"""
+TARGET_COLUM = 'Toxicity' # Target column for prediction
+PIPELINE_NAME: str = 'MeOx'
+ARTIFACT_DIR:str = 'artifacts'
+FILE_NAME:str = 'MeOx_data.csv'
+TRAIN_FILE_NAME: str = 'train.csv'
+TEST_FILE_NAME: str = 'test.csv'
+
+
+
+
+"""
+Data Ingestion related constants start with DATA INGESTION_
+"""
+DATA_INGESTION_DIR_NAME: str = "data_ingestion"
+DATA_INGESTION_FEATURE_STORE_DIR: str = "feature_store"
+DATA_INGESTION_INGESTED_DIR: str = "ingested"
+DATA_INGESTION_TRAIN_TEST_SPLIT_RATIO: float = 0.2
+DATA_INGESTION_S3_KEY: str = "Metal_Oxide_cytotoxicityCSV.csv"
+DATA_INGESTION_BUCKET_NAME: str = "meoxdockeredition"
+
+
