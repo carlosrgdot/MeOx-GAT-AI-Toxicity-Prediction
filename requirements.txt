@@ -11,4 +11,7 @@ setuptools
 certifi
 boto3
 dotenv
+scipy
+PyYAML
+dill
 #-e .

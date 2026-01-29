@@ -12,7 +12,7 @@ FILE_NAME:str = 'MeOx_data.csv'
 TRAIN_FILE_NAME: str = 'train.csv'
 TEST_FILE_NAME: str = 'test.csv'
 
-
+SCHEMA_FILE_PATH = os.path.join('data_schema','schema.yaml')
 
 
 """
@@ -26,3 +26,12 @@ DATA_INGESTION_S3_KEY: str = "Metal_Oxide_cytotoxicityCSV.csv"
 DATA_INGESTION_BUCKET_NAME: str = "meoxdockeredition"
 
 
+
+"""
+Data Validation related constants start with DATA VALIDATION_
+"""
+DATA_VALIDATION_DIR_NAME: str = "data_validation"
+DATA_VALIDATION_VALID_DIR: str = "validated"
+DATA_VALIDATION_INVALID_DIR: str = "invalid"
+DATA_VALIDATION_DRIFT_REPORT_DIR: str = "drift_report"
+DATA_VALIDATION_DRIFT_REPORT_FILE_NAME: str = "report.yaml"

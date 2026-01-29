@@ -1,0 +1,50 @@
+columns:
+  Material type: object
+  Core size (nm): float
+  Method core size: object
+  Hydro size (nm): float
+  Method hydro size: object
+  Surface charge (mV): float
+  Method surface charge: object
+  Surface area (m2/g): float
+  Method surface area: object
+  _Hsf (eV): float
+  Ec (eV): float
+  Ev (eV): float
+  _MeO (eV): float
+  Assay: object
+  Cell name: object
+  Cell species: object
+  Exposure time: int
+  Exposure dose (ug/mL): float
+  Viability (%): float
+  Toxicity: object
+
+numerical_columns:
+  - Core size (nm)
+  - Hydro size (nm)
+  - Surface charge (mV)
+  - Surface area (m2/g)
+  - _Hsf (eV)
+  - Ec (eV)
+  - Ev (eV)
+  - _MeO (eV)
+  - Exposure time
+  - Exposure dose (ug/mL)
+  - Viability (%)
+
+drop_columns:
+  - Method core size
+  - Method hydro size
+  - Method surface charge
+  - Method surface area
+  - Assay
+
+categorical_columns:
+  - Material type
+  - Cell name
+  - Cell species
+  - Toxicity
+
+
+target_column: "Toxicity"
