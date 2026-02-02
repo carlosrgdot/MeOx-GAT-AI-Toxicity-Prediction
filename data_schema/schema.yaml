@@ -15,10 +15,12 @@ columns:
   Assay: object
   Cell name: object
   Cell species: object
-  Exposure time: int
+  Exposure time: object
   Exposure dose (ug/mL): float
   Viability (%): float
   Toxicity: object
+  Cell origin: object
+  Cell type: object
 
 numerical_columns:
   - Core size (nm)
@@ -29,22 +31,23 @@ numerical_columns:
   - Ec (eV)
   - Ev (eV)
   - _MeO (eV)
-  - Exposure time
   - Exposure dose (ug/mL)
-  - Viability (%)
 
 drop_columns:
+  - Viability (%)
+  - ERM ID
   - Method core size
   - Method hydro size
   - Method surface charge
   - Method surface area
   - Assay
+  - Cell name
+  - Cell species
+  - Cell origin
+  - Cell type
 
 categorical_columns:
   - Material type
-  - Cell name
-  - Cell species
-  - Toxicity
 
 
 target_column: "Toxicity"
