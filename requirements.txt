@@ -14,4 +14,5 @@ dotenv
 scipy
 PyYAML
 dill
+optuna
 #-e .
