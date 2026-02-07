@@ -1,7 +1,9 @@
 from MeOx.components.data_ingestion import DataIngestion
 from MeOx.components.data_validation import DataValidation
 from MeOx.components.data_transformation import DataTransformation
-from MeOx.entity.config_entity import DataIngestionConfig, TrainingPipelineConfig, DataValidationConfig,DataTransformationConfig
+from MeOx.components.model_trainer import ModelTrainer
+from MeOx.entity.config_entity import DataIngestionConfig, TrainingPipelineConfig, DataValidationConfig, \
+    DataTransformationConfig, ModelTrainerConfig
 from MeOx.exception.exception import MeOxException
 from MeOx.logging.logger import logging
 import sys,os
@@ -26,8 +28,34 @@ if __name__ == '__main__':
         print(data_validation_artifact)
         logging.info('Data validation process completed')
 
+        if data_validation_artifact.validation_status:
+            logging.info("Starting data transformation process")
 
+            data_transformation_config = DataTransformationConfig(training_pipeline_config)
+            data_transformation = DataTransformation(
+                data_validation_artifact=data_validation_artifact,
+                data_transformation_config=data_transformation_config
+            )
 
+            data_transformation_artifact = data_transformation.initiate_data_transformation()
+            print(f"Transformation Artifact: {data_transformation_artifact}")
+            logging.info("Data transformation process completed")
+
+            #logging.info("Starting model training process")
+
+            model_trainer_config = ModelTrainerConfig(training_pipeline_config)
+            model_trainer = ModelTrainer(
+                model_trainer_config=model_trainer_config,
+                data_transformation_artifact=data_transformation_artifact
+            )
+
+            model_trainer_artifact = model_trainer.initiate_model_trainer()
+            print(f"Model Trainer Artifact: {model_trainer_artifact}")
+            logging.info("Model training process completed")
+
+        else:
+            logging.error("Pipeline stopped. Data Validation failed.")
+            raise Exception("Data Validation failed. Check your data schema.")
 
 
     except Exception as e:

@@ -37,22 +37,18 @@ class DataIngestion:
         except Exception as e:
             raise MeOxException(e, sys)
 
-    def split_data_as_train_test(self, dataframe: pd.DataFrame):
+    def save_full_data(self, dataframe: pd.DataFrame) -> str:
         try:
-            train_set, test_set = train_test_split(
-                dataframe,
-                test_size=self.data_ingestion_config.train_test_split_ratio
-            )
-            logging.info("Train/Test split completed.")
-            dir_path = os.path.dirname(self.data_ingestion_config.train_file_path)
+            dir_path = os.path.dirname(self.data_ingestion_config.data_file_path)
             os.makedirs(dir_path, exist_ok=True)
-            train_set.to_csv(
-                self.data_ingestion_config.train_file_path, index=False, header=True
+
+            data_file_path = os.path.join(dir_path, "data.csv")
+
+            dataframe.to_csv(
+                data_file_path, index=False, header=True
             )
-            test_set.to_csv(
-                self.data_ingestion_config.test_file_path, index=False, header=True
-            )
-            logging.info(f"Train and Test saved at: {dir_path}")
+            logging.info(f"Full dataset saved at: {data_file_path}")
+            return data_file_path
 
         except Exception as e:
             raise MeOxException(e, sys)
@@ -60,10 +56,10 @@ class DataIngestion:
     def initiate_data_ingestion(self) -> DataIngestionArtifact:
         try:
             dataframe = self.download_data_from_s3()
-            self.split_data_as_train_test(dataframe)
+            data_file_path = self.save_full_data(dataframe)
+
             data_ingestion_artifact = DataIngestionArtifact(
-                train_file_path=self.data_ingestion_config.train_file_path,
-                test_file_path=self.data_ingestion_config.test_file_path
+                data_file_path=data_file_path
             )
             return data_ingestion_artifact
 

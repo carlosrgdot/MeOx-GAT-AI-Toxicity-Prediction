@@ -1,4 +1,4 @@
-import os,sys
+import os, sys
 import pandas as pd
 from scipy.stats import ks_2samp
 from sklearn.model_selection import train_test_split
@@ -6,28 +6,28 @@ from sklearn.model_selection import train_test_split
 from MeOx.constant.training_pipeline import SCHEMA_FILE_PATH
 from MeOx.exception.exception import MeOxException
 from MeOx.logging.logger import logging
-from MeOx.entity.config_entity import DataValidationConfig,DataIngestionConfig
+from MeOx.entity.config_entity import DataValidationConfig, DataIngestionConfig
 from MeOx.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact
 from MeOx.utils.main_utils.utils import read_yaml_file, write_yaml_file
 
 
 class DataValidation:
-    def __init__(self,data_ingestion_artifact:DataIngestionArtifact, data_validation_config:DataValidationConfig):
+    def __init__(self, data_ingestion_artifact: DataIngestionArtifact, data_validation_config: DataValidationConfig):
         try:
             self.data_ingestion_artifact = data_ingestion_artifact
             self.data_validation_config = data_validation_config
             self._schema_config = read_yaml_file(SCHEMA_FILE_PATH)
         except Exception as e:
-            raise MeOxException(e,sys) from e
+            raise MeOxException(e, sys) from e
 
     @staticmethod
     def read_data(file_path) -> pd.DataFrame:
         try:
             return pd.read_csv(file_path)
         except Exception as e:
-            raise MeOxException(e,sys) from e
+            raise MeOxException(e, sys) from e
 
-    def validate_columns(self,dataframe:pd.DataFrame) -> bool:
+    def validate_number_of_columns(self, dataframe: pd.DataFrame) -> bool:
         try:
             number_of_columns = len(self._schema_config['columns'])
             logging.info(f'Required number of columns: {number_of_columns}')
@@ -36,10 +36,9 @@ class DataValidation:
                 return True
             return False
         except Exception as e:
-            raise MeOxException(e,sys) from e
+            raise MeOxException(e, sys) from e
 
     def is_column_exist(self, dataframe: pd.DataFrame) -> bool:
-
         try:
             dataframe_columns = dataframe.columns
             schema_columns = self._schema_config["columns"].keys()
@@ -56,21 +55,55 @@ class DataValidation:
         except Exception as e:
             raise MeOxException(e, sys)
 
-    def data_drift(self,base_df,current_df,threshold=0.05) -> bool:
+    def validate_data_types(self, dataframe: pd.DataFrame) -> bool:
         try:
-            status=True
-            report={}
-            numerical_columns = self._schema_config["numerical_columns"]
-            for column in numerical_columns:
-                d1=base_df[column]
-                d2=current_df[column]
-                missing_ratio = d2.isnull().sum() / len(d2)
+            validation_status = True
+            for col, rules in self._schema_config['columns'].items():
+                expected_type = rules.get('type', 'object')
 
+                if expected_type in ['float', 'int']:
+                    if col in dataframe.columns:
+                        if not pd.api.types.is_numeric_dtype(dataframe[col]):
+                            logging.info(
+                                f"Data Type Error: Column '{col}' expected {expected_type} but found non-numeric.")
+                            validation_status = False
+            return validation_status
+        except Exception as e:
+            raise MeOxException(e, sys)
+
+    def validate_critical_variables(self, dataframe: pd.DataFrame) -> bool:
+        critical_vars = ["Exposure dose (ug/mL)", "Material type", "Exposure time"]
+        try:
+            validation_status = True
+            for col in critical_vars:
+                if col in dataframe.columns:
+                    if dataframe[col].isnull().sum() > 0:
+                        logging.info(f"Critical Error: Variable '{col}' has null values.")
+                        validation_status = False
+                else:
+                    logging.info(f"Critical Error: Critical variable '{col}' missing from dataframe.")
+                    validation_status = False
+            return validation_status
+        except Exception as e:
+            raise MeOxException(e, sys)
+
+    def data_drift(self, base_df, current_df, threshold=0.05) -> bool:
+        try:
+            status = True
+            report = {}
+            numerical_columns = self._schema_config["numerical_columns"]
+
+            for column in numerical_columns:
+                if column not in base_df.columns or column not in current_df.columns:
+                    continue
+
+                d1 = base_df[column]
+                d2 = current_df[column]
+
+                missing_ratio = d2.isnull().sum() / len(d2)
                 if missing_ratio > 0.3:
-                    is_found = True
                     status = False
                     logging.info(f"CRITICAL DRIFT: Column '{column}' has {missing_ratio:.3%} missing values.")
-
                     report.update({
                         column: {
                             "p_value": 0.0,
@@ -85,7 +118,9 @@ class DataValidation:
 
                 if d1.empty or d2.empty:
                     continue
-                is_sample_dist = ks_2samp(d1,d2)
+
+                is_sample_dist = ks_2samp(d1, d2)
+
                 if is_sample_dist.pvalue < threshold:
                     is_found = True
                     status = False
@@ -106,65 +141,62 @@ class DataValidation:
             write_yaml_file(file_path=drift_report_file_path, content=report)
             return status
         except Exception as e:
-            raise MeOxException(e,sys) from e
+            raise MeOxException(e, sys) from e
 
     def initiate_data_validation(self) -> DataValidationArtifact:
         try:
-            train_file_path = self.data_ingestion_artifact.train_file_path
-            test_file_path = self.data_ingestion_artifact.test_file_path
+            data_file_path = self.data_ingestion_artifact.data_file_path
+            dataframe = DataValidation.read_data(data_file_path)
 
-            # Read data from train and test
-            train_dataframe=DataValidation.read_data(train_file_path)
-            test_dataframe=DataValidation.read_data(test_file_path)
-            # Validate columns
-            status=self.validate_columns(dataframe=train_dataframe)
+            logging.info("Starting validation sequence (Single File)...")
+
+            status = True
+            error_message = ""
+
+            if not self.validate_number_of_columns(dataframe=dataframe):
+                status = False
+                error_message = "Validation Failed: Column count mismatch."
+
+            elif not self.is_column_exist(dataframe=dataframe):
+                status = False
+                error_message = "Validation Failed: Missing required columns."
+
+            elif not self.validate_data_types(dataframe=dataframe):
+                status = False
+                error_message = "Validation Failed: Data type mismatch (Numeric check)."
+
+            elif not self.validate_critical_variables(dataframe=dataframe):
+                status = False
+                error_message = "Validation Failed: Critical variables contain nulls."
+
+            drift_report_path = self.data_validation_config.drift_report_file_path
+            dir_path_report = os.path.dirname(drift_report_path)
+            os.makedirs(dir_path_report, exist_ok=True)
+            write_yaml_file(file_path=drift_report_path, content={"drift_status": "skipped_single_file_strategy"})
+
+            valid_data_path = None
+
             if status:
-                status = self.is_column_exist(dataframe=train_dataframe)
+                logging.info("Data Validation Successful.")
 
-                # Variables para guardar las rutas finales
-            valid_train_path = None
-            valid_test_path = None
-            invalid_train_path = None
-            invalid_test_path = None
-
-            if status:
-                drift_status = self.data_drift(base_df=train_dataframe, current_df=test_dataframe)
-
-                dir_path = os.path.dirname(self.data_validation_config.valid_train_file_path)
+                dir_path = os.path.dirname(self.data_validation_config.valid_data_file_path)
                 os.makedirs(dir_path, exist_ok=True)
 
-                train_dataframe.to_csv(self.data_validation_config.valid_train_file_path, index=False, header=True)
-                test_dataframe.to_csv(self.data_validation_config.valid_test_file_path, index=False, header=True)
-
-                valid_train_path = self.data_validation_config.valid_train_file_path
-                valid_test_path = self.data_validation_config.valid_test_file_path
-
-                message = "Data Validation successful."
+                valid_data_path = os.path.join(dir_path, "data.csv")
+                dataframe.to_csv(valid_data_path, index=False, header=True)
 
             else:
-                dir_path = os.path.dirname(self.data_validation_config.invalid_train_file_path)
-                os.makedirs(dir_path, exist_ok=True)
+                logging.info(f"Data Validation Failed. Error: {error_message}")
+                raise Exception(error_message)
 
-                train_dataframe.to_csv(self.data_validation_config.invalid_train_file_path, index=False, header=True)
-                test_dataframe.to_csv(self.data_validation_config.invalid_test_file_path, index=False, header=True)
-
-                invalid_train_path = self.data_validation_config.invalid_train_file_path
-                invalid_test_path = self.data_validation_config.invalid_test_file_path
-
-                message = "Data Validation failed (Schema mismatch)."
-
-            # --- Crear el Artefacto con tus campos exactos ---
             data_validation_artifact = DataValidationArtifact(
                 validation_status=status,
-                valid_train_file_path=valid_train_path,
-                valid_test_file_path=valid_test_path,
-                invalid_train_file_path=invalid_train_path,
-                invalid_test_file_path=invalid_test_path,
-                drift_report_file_path=self.data_validation_config.drift_report_file_path
+                valid_data_file_path=valid_data_path,
+                drift_report_file_path=drift_report_path
             )
 
             logging.info(f"Data validation artifact created: {data_validation_artifact}")
             return data_validation_artifact
 
         except Exception as e:
-            raise MeOxException(e,sys) from e
+            raise MeOxException(e, sys) from e

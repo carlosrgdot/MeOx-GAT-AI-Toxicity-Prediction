@@ -15,4 +15,7 @@ scipy
 PyYAML
 dill
 optuna
+mlflow
+dagshub
+dvc
 #-e .
