@@ -18,4 +18,8 @@ optuna
 mlflow
 dagshub
 dvc
+fastapi
+uvicorn
+jinja2
+pydantic
 #-e .

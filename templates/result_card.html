@@ -1,0 +1,14 @@
+<div class="border-l-4 {{ 'border-red-500 bg-red-50' if result.is_toxic else 'border-green-500 bg-green-50' }} p-4 rounded-r-lg shadow-sm">
+    <div class="flex justify-between items-center">
+        <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Prediction</p>
+            <h4 class="text-2xl font-bold {{ 'text-red-700' if result.is_toxic else 'text-green-700' }}">
+                {{ result.prediction }}
+            </h4>
+        </div>
+        <div class="text-right">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Confidence</p>
+            <span class="text-xl font-mono font-semibold">{{ "%.2f"|format(result.confidence * 100) }}%</span>
+        </div>
+    </div>
+</div>
