@@ -61,6 +61,7 @@ The primary objective was to bridge the gap between **Computational Chemistry** 
 
 ---
 
+
 ## Installation & Deployment
 
 ### Option A: Docker (Recommended)
@@ -89,3 +90,30 @@ pip install -r requirements.txt
 
 # 3. Start the server
 python app.py
+```
+
+---
+
+## ⚠️ Important Disclaimer
+
+**MeOx is a research support tool designed for *in-silico* screening and prioritization.**
+
+While the Graph Attention Network (GAT) model demonstrates high accuracy (>97%) in validation datasets, **it does not replace standard *in vitro* or *in vivo* toxicological assays.**
+
+* **Intended Use:** This tool is intended to assist researchers in narrowing down candidates and optimizing experimental design (High-Throughput Screening).
+* **Limitation:** AI predictions are probabilistic approximations based on training data. False positives and false negatives may occur.
+* **Responsibility:** Final verification of toxicity must always be conducted through physical experimentation. **ArgusX** and the developer assume no liability for decisions made solely based on these predictions.
+
+---
+
+## 📄 License
+
+**MeOx** is protected under the **ArgusX Public Source License (Strict Non-Commercial & Share-Alike)**.
+
+* 🎓 **Free for:** Research, Education, and Personal use.
+* 🧬 **Modifications:** Must remain Open Source and Free (Share-Alike).
+* 🚫 **Forbidden:** Any commercial use or selling of the software.
+
+*To use this software in a commercial product, you must obtain a license from **ArgusX**.*
+
+Copyright © 2026 Carlos Roman Galindo Diaz.
