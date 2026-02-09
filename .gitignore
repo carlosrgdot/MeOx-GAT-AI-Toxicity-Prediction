@@ -135,6 +135,9 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+.dvc/
+dvc.lock
+dvc.yaml
 log/
 test_dagshub.py
 final_models/
