@@ -1,0 +1,21 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: mkdir -p final_models && python main.py && cp "$(ls -1d 
+      artifacts/*/model_trainer/trained_model/model.pth | tail -n 1)" 
+      final_models/model.pth
+    deps:
+    - path: MeOx/
+      hash: md5
+      md5: bd5610194adda71b91d4508c69112711.dir
+      size: 158450
+      nfiles: 49
+    - path: main.py
+      hash: md5
+      md5: 4858fbb2724783859310869b69148986
+      size: 2800
+    outs:
+    - path: final_models/model.pth
+      hash: md5
+      md5: 96c17668d41af396a77b3455edc30c48
+      size: 535067

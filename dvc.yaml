@@ -1,0 +1,14 @@
+stages:
+  train:
+    cmd: >-
+      mkdir -p final_models &&
+      python main.py &&
+      cp "$(ls -1d artifacts/*/model_trainer/trained_model/model.pth | tail -n 1)" final_models/model.pth
+
+    deps:
+      - main.py
+      - MeOx/
+
+
+    outs:
+      - final_models/model.pth
