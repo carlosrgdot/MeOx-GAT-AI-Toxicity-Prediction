@@ -135,6 +135,9 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+log/
+test_dagshub.py
+final_models/
 prediction_output/
 artifacts/
 .env
@@ -207,4 +210,3 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-/final_models
