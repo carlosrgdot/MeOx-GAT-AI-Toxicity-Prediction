@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import optuna
 import mlflow
 from urllib.parse import urlparse
+import json
 from dotenv import load_dotenv
 from optuna.samplers import TPESampler
 from optuna.pruners import HyperbandPruner
@@ -312,6 +313,13 @@ class ModelTrainer:
             os.makedirs(os.path.dirname(self.model_trainer_config.trained_model_file_path), exist_ok=True)
             torch.save(final_model.state_dict(), self.model_trainer_config.trained_model_file_path)
             logging.info(f"Final Model saved at {self.model_trainer_config.trained_model_file_path}")
+            params_file_path = os.path.join(
+                os.path.dirname(self.model_trainer_config.trained_model_file_path),
+                "model_params.json"
+            )
+            with open(params_file_path, "w") as f:
+                json.dump(best_params, f)
+            logging.info(f"Model architecture parameters saved at: {params_file_path}")
 
             model_trainer_artifact = ModelTrainerArtifact(
                 trained_model_file_path=self.model_trainer_config.trained_model_file_path,

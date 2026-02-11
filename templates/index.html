@@ -2,19 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MeOx | AI Nanotoxicity Prediction</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
+        button, input, select, a, div[onclick] {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             font-family: 'Space Grotesk', sans-serif;
             background-color: #0f172a;
             color: #e2e8f0;
+            -webkit-overflow-scrolling: touch;
         }
-
 
         .solid-panel {
             background: #1e293b;
@@ -25,42 +30,52 @@
             background: #0f172a;
             border: 1px solid #475569;
             color: white;
+            font-size: 16px !important;
         }
 
         .modal.hidden { display: none; }
         .modal.visible { display: flex; }
 
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        @media (min-width: 768px) {
+            ::-webkit-scrollbar { width: 8px; }
+            ::-webkit-scrollbar-track { background: #0f172a; }
+            ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        }
     </style>
 </head>
-<body class="h-screen overflow-hidden flex text-slate-200" onload="updateDashboard()">
 
-<aside class="w-72 bg-slate-900 border-r border-slate-700 flex flex-col shadow-2xl z-20">
-        <div class="p-8 border-b border-slate-700">
-            <h1 class="text-3xl font-bold tracking-wider flex items-center gap-3">
-                <i class="fa-solid fa-atom text-blue-500"></i>
-                <span class="text-white">MeOx:GAT</span>
-            </h1>
-            <div class="mt-2">
-                <p class="text-[10px] text-slate-400 font-mono uppercase tracking-widest">Powered by</p>
-                <p class="text-sm font-bold text-blue-400 tracking-wide">ARGUSX</p>
+<body class="flex flex-col md:flex-row min-h-screen md:h-screen md:overflow-hidden text-slate-200 bg-slate-900" onload="updateDashboard()">
+
+    <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 z-40 hidden md:hidden backdrop-blur-sm transition-opacity cursor-pointer"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-slate-900 border-r border-slate-700 flex flex-col shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0">
+        <div class="p-8 border-b border-slate-700 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold tracking-wider flex items-center gap-3">
+                    <i class="fa-solid fa-atom text-blue-500"></i>
+                    <span class="text-white">MeOx:GAT</span>
+                </h1>
+                <div class="mt-2">
+                    <p class="text-[10px] text-slate-400 font-mono uppercase tracking-widest">Powered by</p>
+                    <p class="text-sm font-bold text-blue-400 tracking-wide">ARGUSX</p>
+                </div>
             </div>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-4 -mr-4">
+                <i class="fa-solid fa-xmark text-2xl"></i>
+            </button>
         </div>
 
-        <nav class="flex-1 p-6 space-y-4">
+        <nav class="flex-1 p-6 space-y-4 overflow-y-auto">
             <p class="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2 ml-2">Main Menu</p>
-            <button onclick="showSection('home')" id="btn-home" class="nav-btn w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 hover:bg-slate-800">
+            <button onclick="showSection('home')" id="btn-home" class="nav-btn w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 hover:bg-slate-800 active:bg-slate-700 active:scale-95 transition-all">
                 <i class="fa-solid fa-house w-6 text-slate-400"></i>
                 <span>Dashboard</span>
             </button>
-            <button onclick="showSection('predict')" id="btn-predict" class="nav-btn w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 hover:bg-slate-800">
+            <button onclick="showSection('predict')" id="btn-predict" class="nav-btn w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 hover:bg-slate-800 active:bg-slate-700 active:scale-95 transition-all">
                 <i class="fa-solid fa-microscope w-6 text-slate-400"></i>
                 <span>Predictions</span>
             </button>
-            <button onclick="showSection('train')" id="btn-train" class="nav-btn w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 hover:bg-slate-800">
+            <button onclick="showSection('train')" id="btn-train" class="nav-btn w-full text-left px-5 py-4 rounded-xl flex items-center gap-4 hover:bg-slate-800 active:bg-slate-700 active:scale-95 transition-all">
                 <i class="fa-solid fa-brain w-6 text-slate-400"></i>
                 <span>Retrain Model</span>
             </button>
@@ -76,18 +91,24 @@
         </div>
     </aside>
 
-    <main class="flex-1 overflow-y-auto relative bg-slate-900">
-        <header class="sticky top-0 z-10 px-8 py-6 flex justify-between items-center bg-slate-900 border-b border-slate-700">
-            <div>
-                <h2 class="text-2xl font-bold text-white" id="page-title">Dashboard</h2>
-                <p class="text-sm text-slate-400">Welcome back, Scientist.</p>
+    <main class="flex-1 w-full relative bg-slate-900 md:overflow-y-auto">
+
+        <header class="sticky top-0 z-30 px-6 py-4 md:px-8 md:py-6 flex justify-between items-center bg-slate-900/95 backdrop-blur border-b border-slate-700 shadow-md">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white focus:outline-none p-3 -ml-3 rounded-lg active:bg-slate-800 transition-colors">
+                    <i class="fa-solid fa-bars text-2xl"></i>
+                </button>
+                <div>
+                    <h2 class="text-xl md:text-2xl font-bold text-white" id="page-title">Dashboard</h2>
+                    <p class="text-sm text-slate-400 hidden sm:block">Welcome back, Scientist.</p>
+                </div>
             </div>
-            <a href="https://github.com/carlosrgdot/MeOx_Docker_Edition" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-4 py-2 rounded-lg text-sm border border-slate-700 flex items-center gap-2 transition-colors">
-    <i class="fa-brands fa-github"></i> Documentation
-</a>
+            <a href="https://github.com/carlosrgdot/MeOx_Docker_Edition" target="_blank" class="bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-blue-400 px-3 py-2 md:px-4 rounded-lg text-sm border border-slate-700 flex items-center gap-2 transition-colors">
+                <i class="fa-brands fa-github"></i> <span class="hidden sm:inline">Docs</span>
+            </a>
         </header>
 
-        <div class="p-8 max-w-7xl mx-auto space-y-10 pb-20">
+        <div class="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-20">
 
             <div id="home" class="section">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -98,7 +119,7 @@
                         <p class="text-slate-400 text-sm font-bold uppercase tracking-wider">Balanced Accuracy</p>
                         <h3 class="text-4xl font-bold text-white mt-2" id="accuracy-display">--.--%</h3>
                         <div class="mt-4 flex items-center gap-2 text-xs text-blue-400 bg-blue-900/50 w-fit px-2 py-1 rounded">
-                            <i class="fa-solid fa-chart-line"></i> Validated on S2Nano
+                            <i class="fa-solid fa-chart-line"></i> Validated
                         </div>
                     </div>
 
@@ -125,15 +146,15 @@
                     </div>
                 </div>
 
-                <div class="mt-8 solid-panel p-8 rounded-2xl border-l-4 border-blue-500 flex items-center gap-6">
+                <div class="mt-8 solid-panel p-8 rounded-2xl border-l-4 border-blue-500 flex flex-col md:flex-row items-center gap-6">
                     <div class="bg-blue-900/50 p-4 rounded-full text-blue-400">
                         <i class="fa-solid fa-wand-magic-sparkles text-3xl"></i>
                     </div>
-                    <div>
+                    <div class="text-center md:text-left">
                         <h3 class="text-xl font-bold text-white">Ready to Predict?</h3>
-                        <p class="text-slate-400 mt-1">Use the Prediction module to analyze single nanoparticles or upload batch datasets for massive screening.</p>
+                        <p class="text-slate-400 mt-1">Use the Prediction module to analyze single nanoparticles or upload batch datasets.</p>
                     </div>
-                    <button onclick="showSection('predict')" class="ml-auto bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-bold">
+                    <button onclick="showSection('predict')" class="w-full md:w-auto md:ml-auto bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold active:scale-95 transition-all shadow-lg">
                         Go to Predictions <i class="fa-solid fa-arrow-right ml-2"></i>
                     </button>
                 </div>
@@ -142,34 +163,34 @@
             <div id="predict" class="section hidden">
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
-                    <div class="solid-panel p-8 rounded-2xl h-fit">
+                    <div class="solid-panel p-6 md:p-8 rounded-2xl h-fit">
                         <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
                             <h3 class="text-xl font-bold text-white flex items-center gap-2">
                                 <i class="fa-solid fa-flask text-blue-500"></i> Single Analysis
                             </h3>
-                            <button onclick="openModal('singleHelpModal')" class="text-slate-500 hover:text-blue-400"><i class="fa-regular fa-circle-question text-xl"></i></button>
+                            <button onclick="openModal('singleHelpModal')" class="text-slate-500 hover:text-blue-400 p-3 -mr-2"><i class="fa-regular fa-circle-question text-xl"></i></button>
                         </div>
 
                         <form id="singleForm" class="space-y-6">
                             <div>
                                 <label class="block text-sm font-medium text-slate-400 mb-2">Material Type</label>
                                 <div class="relative">
-                                    <select name="material" class="solid-input block w-full rounded-xl p-3 outline-none appearance-none cursor-pointer font-mono text-sm">
-                                        <option value="Al2O3" class="bg-slate-800">Al2O3 (Óxido de Aluminio)</option>
-                                        <option value="CeO2" class="bg-slate-800">CeO2 (Óxido de Cerio)</option>
-                                        <option value="CoO" class="bg-slate-800">CoO (Óxido de Cobalto)</option>
-                                        <option value="CuO" class="bg-slate-800">CuO (Óxido de Cobre)</option>
-                                        <option value="Fe2O3" class="bg-slate-800">Fe2O3 (Óxido de Hierro)</option>
-                                        <option value="Gd2O3" class="bg-slate-800">Gd2O3 (Óxido de Gadolinio)</option>
-                                        <option value="HfO2" class="bg-slate-800">HfO2 (Óxido de Hafnio)</option>
-                                        <option value="In2O3" class="bg-slate-800">In2O3 (Óxido de Indio)</option>
-                                        <option value="La2O3" class="bg-slate-800">La2O3 (Óxido de Lantano)</option>
-                                        <option value="Mn2O3" class="bg-slate-800">Mn2O3 (Óxido de Manganeso)</option>
-                                        <option value="NiO" class="bg-slate-800">NiO (Óxido de Níquel)</option>
-                                        <option value="Sb2O3" class="bg-slate-800">Sb2O3 (Trióxido de Antimonio)</option>
-                                        <option value="SiO2" class="bg-slate-800">SiO2 (Dióxido de Silicio)</option>
-                                        <option value="TiO2" class="bg-slate-800">TiO2 (Dióxido de Titanio)</option>
-                                        <option value="ZnO" class="bg-slate-800" selected>ZnO (Óxido de Zinc)</option>
+                                    <select name="material" class="solid-input block w-full rounded-xl p-3 outline-none appearance-none cursor-pointer font-mono text-sm bg-slate-800">
+                                        <option value="Al2O3">Al2O3 (Óxido de Aluminio)</option>
+                                        <option value="CeO2">CeO2 (Óxido de Cerio)</option>
+                                        <option value="CoO">CoO (Óxido de Cobalto)</option>
+                                        <option value="CuO">CuO (Óxido de Cobre)</option>
+                                        <option value="Fe2O3">Fe2O3 (Óxido de Hierro)</option>
+                                        <option value="Gd2O3">Gd2O3 (Óxido de Gadolinio)</option>
+                                        <option value="HfO2">HfO2 (Óxido de Hafnio)</option>
+                                        <option value="In2O3">In2O3 (Óxido de Indio)</option>
+                                        <option value="La2O3">La2O3 (Óxido de Lantano)</option>
+                                        <option value="Mn2O3">Mn2O3 (Óxido de Manganeso)</option>
+                                        <option value="NiO">NiO (Óxido de Níquel)</option>
+                                        <option value="Sb2O3">Sb2O3 (Trióxido de Antimonio)</option>
+                                        <option value="SiO2">SiO2 (Dióxido de Silicio)</option>
+                                        <option value="TiO2">TiO2 (Dióxido de Titanio)</option>
+                                        <option value="ZnO" selected>ZnO (Óxido de Zinc)</option>
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
                                         <i class="fa-solid fa-chevron-down text-xs"></i>
@@ -177,37 +198,37 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-6">
+                            <div class="grid grid-cols-2 gap-4 md:gap-6">
                                 <div>
                                     <label class="block text-sm font-medium text-slate-400 mb-2">Dose (ug/mL)</label>
-                                    <input type="number" name="dose" step="any" class="solid-input block w-full rounded-xl p-3 outline-none placeholder-slate-600" placeholder="e.g., 50.0" required>
+                                    <input type="number" name="dose" step="any" inputmode="decimal" class="solid-input block w-full rounded-xl p-3 outline-none placeholder-slate-600" placeholder="e.g., 50.0" required>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-400 mb-2">Time (h)</label>
-                                    <input type="number" name="time" step="any" class="solid-input block w-full rounded-xl p-3 outline-none placeholder-slate-600" placeholder="e.g., 24.0" required>
+                                    <input type="number" name="time" step="any" inputmode="decimal" class="solid-input block w-full rounded-xl p-3 outline-none placeholder-slate-600" placeholder="e.g., 24.0" required>
                                 </div>
                             </div>
 
-                            <button type="submit" id="btnSinglePredict" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl flex justify-center items-center gap-2 mt-4">
+                            <button type="submit" id="btnSinglePredict" class="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold py-4 rounded-xl flex justify-center items-center gap-2 mt-4 active:scale-95 transition-all shadow-lg">
                                 <span>Run Inference</span>
                                 <i class="fa-solid fa-microchip"></i>
                             </button>
                         </form>
 
-                        <div id="singleResult" class="mt-8 hidden"></div>
+                        <div id="singleResult" class="mt-8 hidden animate-fade-in"></div>
                     </div>
 
                     <div class="space-y-6">
-                        <div class="solid-panel p-8 rounded-2xl relative">
+                        <div class="solid-panel p-6 md:p-8 rounded-2xl relative">
                             <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
                                 <h3 class="text-xl font-bold text-white flex items-center gap-2">
                                     <i class="fa-solid fa-layer-group text-purple-500"></i> Batch Analysis
                                 </h3>
-                                <button onclick="openModal('batchHelpModal')" class="text-slate-500 hover:text-purple-400"><i class="fa-regular fa-circle-question text-xl"></i></button>
+                                <button onclick="openModal('batchHelpModal')" class="text-slate-500 hover:text-purple-400 p-3 -mr-2"><i class="fa-regular fa-circle-question text-xl"></i></button>
                             </div>
 
                             <div class="relative">
-                                <label for="csvInput" id="dropzone" class="border-2 border-dashed border-slate-600 rounded-2xl p-10 text-center hover:bg-slate-800 hover:border-blue-500 cursor-pointer block group transition-colors">
+                                <label for="csvInput" id="dropzone" class="border-2 border-dashed border-slate-600 rounded-2xl p-6 md:p-10 text-center hover:bg-slate-800 hover:border-blue-500 active:bg-slate-700 cursor-pointer block group transition-colors">
                                     <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
                                         <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 group-hover:text-blue-400"></i>
                                     </div>
@@ -224,19 +245,19 @@
                             </div>
 
                             <div class="mt-4 text-center">
-                                <button onclick="downloadTemplate()" class="text-xs text-slate-400 hover:text-white underline decoration-dashed underline-offset-4">
+                                <button onclick="downloadTemplate()" class="text-xs text-slate-400 hover:text-white underline decoration-dashed underline-offset-4 p-4">
                                     <i class="fa-solid fa-file-csv mr-1"></i> Download Template (Avoid Errors)
                                 </button>
                             </div>
                         </div>
 
-                        <div id="batchResultsContainer" class="hidden solid-panel p-8 rounded-2xl border-l-4 border-green-500">
-                            <div class="flex justify-between items-center mb-6">
+                        <div id="batchResultsContainer" class="hidden solid-panel p-6 md:p-8 rounded-2xl border-l-4 border-green-500">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                                 <div>
                                     <h3 class="text-lg font-bold text-white">Analysis Results</h3>
                                     <p class="text-xs text-slate-400" id="batchCount">Processed 0 samples</p>
                                 </div>
-                                <a id="downloadBtn" href="#" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-2">
+                                <a id="downloadBtn" href="#" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-3 px-4 rounded-lg flex justify-center items-center gap-2 active:scale-95 transition-transform">
                                     <i class="fa-solid fa-download"></i> Download Report
                                 </a>
                             </div>
@@ -245,11 +266,11 @@
                                 <table class="w-full text-sm text-left text-slate-400">
                                     <thead class="text-xs text-slate-200 uppercase bg-slate-800 sticky top-0">
                                         <tr>
-                                            <th class="px-6 py-4 font-bold">Material Type</th>
+                                            <th class="px-6 py-4 font-bold">Material</th>
                                             <th class="px-6 py-4 font-bold">Time</th>
                                             <th class="px-6 py-4 font-bold">Dose</th>
-                                            <th class="px-6 py-4 font-bold">Prediction</th>
-                                            <th class="px-6 py-4 font-bold">Confidence</th>
+                                            <th class="px-6 py-4 font-bold">Result</th>
+                                            <th class="px-6 py-4 font-bold">Conf.</th>
                                         </tr>
                                     </thead>
                                     <tbody id="batchTableBody" class="divide-y divide-slate-800">
@@ -259,69 +280,14 @@
                         </div>
                     </div>
 
-                        {% if batch_result %}
-                        <div class="solid-panel p-8 rounded-2xl border-l-4 border-green-500">
-                            <div class="flex justify-between items-center mb-6">
-                                <div>
-                                    <h3 class="text-lg font-bold text-white">Analysis Results</h3>
-                                    <p class="text-xs text-slate-400">Processed {{ batch_result|length }} samples</p>
-                                </div>
-
-                                {% if download_filename %}
-                                <a href="/download/{{ download_filename }}" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-2">
-                                    <i class="fa-solid fa-download"></i> Download Full Report
-                                </a>
-                                {% endif %}
-                            </div>
-
-                            <div class="overflow-x-auto max-h-80 rounded-lg border border-slate-700">
-                                <table class="w-full text-sm text-left text-slate-400">
-                                    <thead class="text-xs text-slate-200 uppercase bg-slate-800 sticky top-0">
-                                        <tr>
-                                            {% for col in columns %}
-                                            <th class="px-6 py-4 font-bold tracking-wider">{{ col }}</th>
-                                            {% endfor %}
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-800">
-                                        {% for row in batch_result %}
-                                        <tr>
-                                            {% for col in columns %}
-                                            <td class="px-6 py-2 whitespace-nowrap">
-                                                {% if col == 'MeOx_Prediction' %}
-
-                                                    {% if row[col] == 'Toxic' %}
-                                                        <span class="bg-red-950 text-red-400 text-xs font-bold px-3 py-1 rounded-sm uppercase tracking-wide">
-                                                            TOXIC
-                                                        </span>
-                                                    {% elif row[col] == 'Non-Toxic' %}
-                                                        <span class="bg-emerald-950 text-emerald-400 text-xs font-bold px-3 py-1 rounded-sm uppercase tracking-wide">
-                                                            SAFE
-                                                        </span>
-                                                    {% else %}
-                                                        <span class="text-slate-400">{{ row[col] }}</span>
-                                                    {% endif %}
-
-                                                {% elif col == 'Confidence_Score' %}
-                                                    <span class="font-mono text-slate-300 font-bold">{{ "%.1f"|format(row[col]*100) }}%</span>
-                                                {% else %}
-                                                    <span class="text-slate-400">{{ row[col] }}</span>
-                                                {% endif %}
-                                            </td>
-                                            {% endfor %}
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    {% if batch_result %}
                         {% endif %}
-                    </div>
+
                 </div>
             </div>
 
             <div id="train" class="section hidden">
-                <div class="solid-panel p-12 rounded-3xl text-center max-w-2xl mx-auto mt-10 relative overflow-hidden">
+                <div class="solid-panel p-8 md:p-12 rounded-3xl text-center max-w-2xl mx-auto mt-10 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500"></div>
 
                     <div class="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-slate-700">
@@ -332,17 +298,16 @@
                         Initiate the MLOps cycle. This will ingest the latest data, regenerate the Graph Database, and train a fresh GAT model instance.
                     </p>
 
-                    <button onclick="openModal('trainHelpModal')" class="text-blue-400 hover:text-white text-sm mb-6 block mx-auto underline underline-offset-4 decoration-dashed"><i class="fa-solid fa-info-circle mr-1"></i> How does retraining work?</button>
-<div class="flex flex-col gap-4 justify-center items-center">
+                    <button onclick="openModal('trainHelpModal')" class="text-blue-400 hover:text-white text-sm mb-6 block mx-auto underline underline-offset-4 decoration-dashed p-3"><i class="fa-solid fa-info-circle mr-1"></i> How does retraining work?</button>
 
-                        <button onclick="startTraining()" id="trainBtn" class="bg-white text-slate-900 px-10 py-4 rounded-xl hover:bg-slate-200 transition w-full md:w-auto font-bold shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center justify-center gap-3">
+                    <div class="flex flex-col gap-4 justify-center items-center">
+                        <button onclick="startTraining()" id="trainBtn" class="bg-white text-slate-900 px-10 py-4 rounded-xl hover:bg-slate-200 transition w-full md:w-auto font-bold shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center justify-center gap-3 active:scale-95">
                             <i class="fa-solid fa-play"></i> Start Training Process
                         </button>
 
-                        <button onclick="cancelTraining()" id="cancelTrainBtn" class="hidden bg-red-600 text-white px-10 py-4 rounded-xl hover:bg-red-500 transition w-full md:w-auto font-bold shadow-[0_0_20px_rgba(220,38,38,0.5)] flex items-center justify-center gap-3 animate-pulse">
+                        <button onclick="cancelTraining()" id="cancelTrainBtn" class="hidden bg-red-600 text-white px-10 py-4 rounded-xl hover:bg-red-500 transition w-full md:w-auto font-bold shadow-[0_0_20px_rgba(220,38,38,0.5)] flex items-center justify-center gap-3 animate-pulse active:scale-95">
                             <i class="fa-solid fa-stop"></i> ABORT OPERATION
                         </button>
-
                     </div>
 
                     <div id="trainLog" class="mt-8 text-left text-xs font-mono bg-black/50 text-green-400 p-6 rounded-xl hidden h-64 overflow-y-auto border border-slate-700 shadow-inner leading-6">
@@ -350,54 +315,68 @@
                     </div>
                 </div>
             </div>
-        <footer class="border-t border-slate-800 pt-8 mt-10 text-center">
+
+            <footer class="border-t border-slate-800 pt-8 mt-10 text-center pb-8">
                 <p class="text-slate-500 text-sm">
-                    &copy; 2026 <span class="font-bold text-slate-300">ArgusX</span>
+                    &copy; 2026 <span class="font-bold text-slate-300">Carlos Roman Galindo Diaz.</span>
                     <span class="mx-2">|</span>
-                    <span class="text-slate-600">Open Source (MIT)</span>
+                    <span class="text-slate-600">Open Source - CC BY-NC-SA 4.0</span>
                 </p>
                 <p class="text-xs text-slate-600 mt-2 font-mono">
-                    Architected & Created by <span class="text-blue-500 font-bold">Carlos Roman Galindo Diaz</span>
+                    Architected by <span class="text-blue-500 font-bold">Carlos Roman Galindo Diaz</span>
                 </p>
             </footer>
 
         </div>
     </main>
 
-    <div id="singleHelpModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="closeModal('singleHelpModal')">
+    <div id="singleHelpModal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="closeModal('singleHelpModal')">
         <div class="solid-panel bg-slate-900 p-8 rounded-2xl max-w-lg w-full border border-slate-600 shadow-2xl transform scale-100" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-flask text-blue-500 mr-2"></i> How to use Single Analysis</h3>
-                <button onclick="closeModal('singleHelpModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="closeModal('singleHelpModal')" class="text-slate-400 hover:text-white p-3 -mr-2"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <p class="text-slate-300 text-sm mb-4">This tool allows you to predict the toxicity of a single nanoparticle scenario instantly.</p>
         </div>
     </div>
 
-    <div id="batchHelpModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="closeModal('batchHelpModal')">
+    <div id="batchHelpModal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="closeModal('batchHelpModal')">
         <div class="solid-panel bg-slate-900 p-8 rounded-2xl max-w-lg w-full border border-slate-600 shadow-2xl" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-layer-group text-purple-500 mr-2"></i> CSV Format Guide</h3>
-                <button onclick="closeModal('batchHelpModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="closeModal('batchHelpModal')" class="text-slate-400 hover:text-white p-3 -mr-2"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <p class="text-slate-300 text-sm mb-4">To process multiple records, upload a CSV file. <span class="text-red-400 font-bold">Strict Requirements:</span></p>
-            <button onclick="downloadTemplate()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-sm font-bold">Download CSV Template</button>
+            <button onclick="downloadTemplate()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-lg text-sm font-bold">Download CSV Template</button>
         </div>
     </div>
 
-    <div id="trainHelpModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="closeModal('trainHelpModal')">
+    <div id="trainHelpModal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="closeModal('trainHelpModal')">
         <div class="solid-panel bg-slate-900 p-8 rounded-2xl max-w-lg w-full border border-slate-600 shadow-2xl" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-brain text-green-500 mr-2"></i> MLOps Pipeline</h3>
-                <button onclick="closeModal('trainHelpModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="closeModal('trainHelpModal')" class="text-slate-400 hover:text-white p-3 -mr-2"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <p class="text-slate-300 text-sm mb-4">This process ingests data and retrains the Graph Attention Network.</p>
         </div>
     </div>
 
-
-
     <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        }
+
         async function updateDashboard() {
             try {
                 const response = await fetch('/api/metrics');
@@ -418,6 +397,14 @@
             });
             const activeBtn = document.getElementById('btn-' + sectionId);
             if(activeBtn) activeBtn.classList.add('bg-slate-800', 'border-l-4', 'border-blue-500');
+
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.classList.contains('-translate-x-full')) {
+                    toggleSidebar();
+                }
+            }
+            window.scrollTo(0,0);
         }
 
         function openModal(modalId) {
@@ -449,10 +436,18 @@
             btn.disabled = true;
 
             const formData = new FormData(this);
+
+            // Fix para teclados móviles (coma por punto)
+            let doseVal = formData.get('dose');
+            let timeVal = formData.get('time');
+
+            if (doseVal) doseVal = doseVal.toString().replace(',', '.');
+            if (timeVal) timeVal = timeVal.toString().replace(',', '.');
+
             const payload = {
                 material: formData.get('material'),
-                dose: parseFloat(formData.get('dose')),
-                time: parseFloat(formData.get('time'))
+                dose: parseFloat(doseVal),
+                time: parseFloat(timeVal)
             };
 
             try {
@@ -475,6 +470,8 @@
                     html = `<div class="solid-panel bg-emerald-900 border-emerald-700 p-6 rounded-2xl flex items-center gap-6"><div class="bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-shield-virus"></i></div><div><h4 class="font-bold text-2xl text-emerald-400">NON-TOXIC / SAFE</h4><p class="text-sm text-emerald-200 opacity-80">Confidence: ${(result.confidence * 100).toFixed(2)}%</p></div></div>`;
                 }
                 resultDiv.innerHTML = html;
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
             } catch (error) {
                 console.error(error);
                 alert('Error making prediction: ' + error.message);
@@ -483,45 +480,6 @@
                 btn.disabled = false;
             }
         });
-
-        async function startTraining() {
-            const btn = document.getElementById('trainBtn');
-            const logDiv = document.getElementById('trainLog');
-            btn.disabled = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
-            logDiv.classList.remove('hidden');
-            logDiv.innerHTML += '<br>> Initializing Docker pipeline...';
-
-            try {
-                const response = await fetch('/train');
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    const text = decoder.decode(value);
-                    logDiv.innerHTML += `<br>${text}`;
-                    logDiv.scrollTop = logDiv.scrollHeight;
-                }
-                logDiv.innerHTML += '<br>> <span class="text-emerald-400 font-bold">SYSTEM UPGRADE COMPLETE.</span>';
-                logDiv.innerHTML += '<br>> Fetching new model metrics...';
-                await updateDashboard();
-                logDiv.innerHTML += '<br>> <span class="text-blue-400">Dashboard updated with new accuracy.</span>';
-            } catch (error) {
-                logDiv.innerHTML += `<br>> <span class="text-red-500">ERROR: ${error}</span>`;
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        }
-        async function cancelTraining() {
-            try {
-                await fetch('/cancel/train', { method: 'POST' });
-                // No necesitamos hacer mucho más, el log del streaming mostrará "STOPPED"
-            } catch (error) {
-                console.error("Error cancelling:", error);
-            }
-        }
 
         async function startTraining() {
             const btnStart = document.getElementById('trainBtn');
@@ -563,12 +521,14 @@
             } catch (error) {
                 logDiv.innerHTML += `<br>> <span class="text-red-500">ERROR: ${error}</span>`;
             } finally {
-                // UI: Restaurar botones
                 btnStart.classList.remove('hidden');
                 btnCancel.classList.add('hidden');
             }
         }
 
+        async function cancelTraining() {
+            try { await fetch('/cancel/train', { method: 'POST' }); } catch (error) { console.error("Error cancelling:", error); }
+        }
 
         async function uploadBatch() {
             const fileInput = document.getElementById('csvInput');
@@ -584,18 +544,13 @@
             formData.append('file', file);
 
             try {
-
                 const response = await fetch('/predict/batch', {
                     method: 'POST',
                     body: formData
                 });
-
                 const result = await response.json();
-
                 if (result.status === 'error') throw new Error(result.message);
-
                 renderBatchTable(result.data, result.filename);
-
             } catch (error) {
                 console.error(error);
                 alert('Error processing file: ' + error.message);
@@ -619,7 +574,6 @@
 
             data.forEach(row => {
                 const tr = document.createElement('tr');
-
                 let badgeHtml = '';
                 const pred = row['MeOx_Prediction'];
 

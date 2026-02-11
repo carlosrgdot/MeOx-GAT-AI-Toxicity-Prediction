@@ -5,30 +5,40 @@ import json
 import pandas as pd
 import uvicorn
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, UploadFile, File, Request
+from fastapi import FastAPI, UploadFile, File, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel,Field
-from fastapi import HTTPException
+from pydantic import BaseModel, Field
 
 from MeOx.logging.logger import logging
 from MeOx.pipeline.training_pipeline import TrainingPipeline
 from MeOx.pipeline.prediction_pipeline import PredictionPipeline
 from MeOx.pipeline.batch_prediction import BatchPrediction
+from MeOx.entity.config_entity import TrainingPipelineConfig
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+METRICS_PATH = os.path.join(BASE_DIR, "metrics.json")
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+OUTPUT_DIR = os.path.join(BASE_DIR, "prediction_output")
 
 training_process = {"active": False, "stop_signal": False}
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if not os.path.exists("metrics.json"):
+    if not os.path.exists(METRICS_PATH):
         default_metrics = {
             "accuracy": 0.972,
             "materials": 15,
             "status": "System Ready"
         }
-        with open("metrics.json", "w") as f:
+        with open(METRICS_PATH, "w") as f:
             json.dump(default_metrics, f)
+
+    if not os.path.exists(OUTPUT_DIR):
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+
     yield
 
 
@@ -38,7 +48,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
 app.add_middleware(
     CORSMiddleware,
@@ -60,27 +70,6 @@ async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.get("/train")
-async def training_route():
-    def iterfile():
-        try:
-            yield "Initializing Training Pipeline...\n"
-
-            train_pipeline = TrainingPipeline()
-            yield "Running Data Ingestion & Transformation...\n"
-
-            train_pipeline.run_pipeline()
-
-            yield "Training Completed Successfully!\n"
-            yield "New Artifacts Saved.\n"
-            yield "The model is now updated."
-
-        except Exception as e:
-            yield f"Error Occurred: {str(e)}\n"
-
-    return StreamingResponse(iterfile(), media_type="text/plain")
-
-
 @app.post("/predict/single")
 async def predict_single(data: PredictionInput):
     try:
@@ -97,16 +86,17 @@ async def predict_single(data: PredictionInput):
         return result
 
     except Exception as e:
+        print(f"ERROR EN PREDICCIÓN SINGLE: {str(e)}")
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
 
-# --- RUTA BATCH CORREGIDA (CON AWAIT Y SEGURIDAD) ---
 @app.post("/predict/batch")
 async def predict_batch(request: Request, file: UploadFile = File(...)):
     if not file.filename.endswith('.csv'):
         return JSONResponse(status_code=400, content={"status": "error", "message": "Only .csv files are allowed"})
 
     MAX_FILE_SIZE = 10 * 1024 * 1024
+
     file.file.seek(0, 2)
     file_size = file.file.tell()
     file.file.seek(0)
@@ -115,7 +105,7 @@ async def predict_batch(request: Request, file: UploadFile = File(...)):
         return JSONResponse(status_code=413,
                             content={"status": "error", "message": "File too large. Max size is 10MB."})
 
-    file_location = f"temp_{file.filename}"
+    file_location = os.path.join(BASE_DIR, f"temp_{file.filename}")
 
     try:
         with open(file_location, "wb+") as file_object:
@@ -144,15 +134,18 @@ async def predict_batch(request: Request, file: UploadFile = File(...)):
         if os.path.exists(file_location):
             os.remove(file_location)
 
-        if "BATCH_CANCELLED_BY_USER" in str(e):
+        error_msg = str(e)
+        if "BATCH_CANCELLED_BY_USER" in error_msg:
             print("Batch process killed by user reload.")
             return JSONResponse(status_code=499, content={"status": "cancelled"})
 
-        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+        print(f"ERROR BATCH: {error_msg}")
+        return JSONResponse(status_code=500, content={"status": "error", "message": error_msg})
+
 
 @app.get("/download/{filename}")
 async def download_file(filename: str):
-    file_path = os.path.join(os.getcwd(), "prediction_output", filename)
+    file_path = os.path.join(OUTPUT_DIR, filename)
     if os.path.exists(file_path):
         return FileResponse(path=file_path, filename=filename, media_type='text/csv')
     return {"error": "File not found"}
@@ -161,8 +154,8 @@ async def download_file(filename: str):
 @app.get("/api/metrics")
 async def get_metrics():
     try:
-        if os.path.exists("metrics.json"):
-            with open("metrics.json", "r") as f:
+        if os.path.exists(METRICS_PATH):
+            with open(METRICS_PATH, "r") as f:
                 return json.load(f)
         else:
             return {"accuracy": 0.0, "materials": 0, "status": "Pending"}
@@ -226,4 +219,4 @@ async def training_route():
 
     return StreamingResponse(iterfile(), media_type="text/plain")
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=5000)

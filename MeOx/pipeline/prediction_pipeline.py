@@ -4,7 +4,7 @@ import pandas as pd
 import torch
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-
+import json
 from MeOx.exception.exception import MeOxException
 from MeOx.logging.logger import logging
 from MeOx.utils.main_utils.utils import load_object
@@ -55,6 +55,8 @@ class PredictionPipeline:
 
             self.model_path = os.path.join(latest_run_dir, "model_trainer", MODEL_TRAINER_TRAINED_MODEL_DIR,
                                            MODEL_FILE_NAME)
+            self.params_path = os.path.join(latest_run_dir, "model_trainer", MODEL_TRAINER_TRAINED_MODEL_DIR,
+                                            "model_params.json")
             self.preprocessor_path = os.path.join(latest_run_dir, "data_transformation",
                                                   DATA_TRANSFORMATION_TRANSFORMED_OBJECT_DIR,
                                                   PREPROCESSING_OBJECT_FILE_NAME)
@@ -65,15 +67,37 @@ class PredictionPipeline:
             self.base_graph = torch.load(self.graph_path, weights_only=False)
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+            model_architecture = {
+                "hidden_channels": 132,
+                "dropout": 0.366,
+                "num_layers": 3,
+                "heads": 6,
+                "activation": "relu"
+            }
+            if os.path.exists(self.params_path):
+                try:
+                    with open(self.params_path, 'r') as f:
+                        loaded_params = json.load(f)
+                        logging.info(f"Loaded dynamic model architecture: {loaded_params}")
+
+                        for k in model_architecture.keys():
+                            if k in loaded_params:
+                                model_architecture[k] = loaded_params[k]
+                except Exception as e:
+                    logging.warning(f"Could not load model_params.json, using defaults. Error: {e}")
+            else:
+                logging.warning("No model_params.json found. Using default legacy architecture.")
+
             self.model = GAT(
                 in_channels=self.base_graph.num_node_features,
-                hidden_channels=132,
+                hidden_channels=model_architecture["hidden_channels"],
                 out_channels=2,
-                dropout=0.3660620578362706,
-                num_layers=3,
-                activation='relu',
-                heads=6
+                dropout=model_architecture["dropout"],
+                num_layers=model_architecture["num_layers"],
+                activation=model_architecture["activation"],
+                heads=model_architecture["heads"]
             ).to(self.device)
+            # -----------------------------------------
 
             self.model.load_state_dict(torch.load(self.model_path, map_location=self.device, weights_only=True))
             self.model.eval()
@@ -87,7 +111,6 @@ class PredictionPipeline:
             self.knn_engine.fit(self.reference_features)
 
             logging.info("Prediction Pipeline initialized successfully.")
-
         except Exception as e:
             raise MeOxException(e, sys) from e
 

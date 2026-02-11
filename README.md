@@ -1,3 +1,14 @@
+---
+title: MeOx GAT AI Predictor
+emoji: 🧬
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+license: cc-by-nc-sa-4.0
+pinned: false
+---
+
 # 🧬 MeOx: AI Nanotoxicity Prediction Platform 
 
 ![Project Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge)
@@ -69,27 +80,36 @@ The primary objective was to bridge the gap between **Computational Chemistry** 
 The fastest way to deploy the full system.
 
 ```bash
-# 1. Clone the repository
-git clone [https://github.com/carlosrgdot/MeOx_Docker_Edition)
-cd MeOx
+## Option A: Docker Execution (Recommended)
 
-# 2. Build the image
+# 1. Clone the repository
+git clone https://github.com/carlosrgdot/MeOx_Docker_Edition.git
+cd MeOx_Docker_Edition
+
+# 2. Build the image 
 docker build -t meox-platform .
 
 # 3. Run the container
-docker run -p 8000:8000 meox-platform
+docker run -p 5000:5000 meox-platform
 
-### Option B: Local Execution
+# 4. Access the App
+# Open your browser at: http://localhost:5000
+
+## Option B: Local Execution (Python)
 
 # 1. Create a virtual environment
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate  # Linux/Mac
+# .venv\Scripts\activate   # Windows
 
 # 2. Install dependencies
 pip install -r requirements.txt
 
 # 3. Start the server
 python app.py
+
+# 4. Access the App
+# Open your browser at: http://localhost:5000
 ```
 
 ---
@@ -102,18 +122,17 @@ While the Graph Attention Network (GAT) model demonstrates high accuracy (>97%) 
 
 * **Intended Use:** This tool is intended to assist researchers in narrowing down candidates and optimizing experimental design (High-Throughput Screening).
 * **Limitation:** AI predictions are probabilistic approximations based on training data. False positives and false negatives may occur.
-* **Responsibility:** Final verification of toxicity must always be conducted through physical experimentation. **ArgusX** and the developer assume no liability for decisions made solely based on these predictions.
+* **Responsibility:** Final verification of toxicity must always be conducted through physical experimentation. Developer assume no liability for decisions made solely based on these predictions.
 
 ---
 
 ## 📄 License
 
-**MeOx** is protected under the **ArgusX Public Source License (Strict Non-Commercial & Share-Alike)**.
-
+MeOx is proprietary software developed by Carlos Roman Galindo Diaz. Available strictly for academic and non-commercial research.
 * 🎓 **Free for:** Research, Education, and Personal use.
 * 🧬 **Modifications:** Must remain Open Source and Free (Share-Alike).
 * 🚫 **Forbidden:** Any commercial use or selling of the software.
 
-*To use this software in a commercial product, you must obtain a license from **ArgusX**.*
+*To use this software in a commercial product, you must obtain a license from **Carlos Roman Galindo Diaz**.*
 
 Copyright © 2026 Carlos Roman Galindo Diaz.

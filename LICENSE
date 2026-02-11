@@ -1,36 +1,39 @@
-ARGUSX PUBLIC SOURCE LICENSE v1.0
+MeOx PUBLIC SOURCE LICENSE v1.0
 ("The Free Research License")
 
-Copyright (c) 2026 Carlos Roman Galindo Diaz (ArgusX Consultancy)
+Copyright (c) 2026 Carlos Roman Galindo Diaz. All rights reserved.
 
-This software is provided to the public specifically to advance science and 
-education. By downloading, using, or modifying this software, you agree to 
+To use this software in a commercial product, you must obtain a license from
+**Carlos Roman Galindo Diaz**.
+
+This software is provided to the public specifically to advance science and
+education. By downloading, using, or modifying this software, you agree to
 the following strict terms:
 
 1. NON-COMMERCIAL USE ONLY
-   You may use, copy, and modify this software for personal, educational, 
-   or academic research purposes FREE of charge. 
-   
-   You are STRICTLY PROHIBITED from using this software, or any derivation 
+   You may use, copy, and modify this software for personal, educational,
+   or academic research purposes FREE of charge.
+
+   You are STRICTLY PROHIBITED from using this software, or any derivation
    of it, for commercial purposes, including but not limited to:
    - Selling the software.
    - Using it as part of a paid service (SaaS).
    - Charging fees for access or distribution.
 
-2. SHARE-ALIKE (THE "VIRAL" CLAUSE)
-   If you modify, transform, or build upon this software ("Derivative Works"), 
+2. SHARE-ALIKE
+   If you modify, transform, or build upon this software ("Derivative Works"),
    you must distribute your contributions under this SAME license.
    - You cannot take this code, modify it, and close the source.
    - You cannot take this code, modify it, and sell it.
-   - Your modified version must also be free and open-source.
+   - Your modified version must also be free and open-source under these terms.
 
 3. ATTRIBUTION
-   You must give appropriate credit to "Carlos Roman Galindo Diaz (ArgusX)" 
-   and provide a link to the original repository in any distribution.
+   You must give appropriate credit to "Carlos Roman Galindo Diaz" and provide
+   a link to the original repository in any distribution.
 
 4. NO WARRANTY
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. USE AT 
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. USE AT
    YOUR OWN RISK.
 
-For commercial licensing inquiries (to lift these restrictions), please 
-contact ArgusX Consultancy directly.
+For commercial licensing inquiries (to lift these restrictions), please
+contact Carlos Roman Galindo Diaz directly.

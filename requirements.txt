@@ -22,4 +22,5 @@ fastapi
 uvicorn
 jinja2
 pydantic
+python-multipart
 #-e .
