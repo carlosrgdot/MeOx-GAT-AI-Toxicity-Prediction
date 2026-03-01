@@ -143,7 +143,6 @@ test_dagshub.py
 final_models/
 prediction_output/
 artifacts/
-artifacts_backup/
 .env
 .envrc
 .venv
