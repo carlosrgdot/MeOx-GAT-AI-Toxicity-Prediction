@@ -47,9 +47,27 @@ class PredictionPipeline:
                 raise Exception(
                     "CRITICAL: No valid training artifacts found. Delete 'batch_predictions' folder manually.")
 
+            all_folders.sort(key=os.path.getmtime, reverse=True)
 
-            latest_run_dir = max(all_folders, key=os.path.getmtime)
+            latest_run_dir = None
+            logging.info(f"Scanning {len(all_folders)} artifact folders for valid models...")
+            for folder in all_folders:
+                potential_model_path = os.path.join(
+                    folder,
+                    "model_trainer",
+                    MODEL_TRAINER_TRAINED_MODEL_DIR,
+                    MODEL_FILE_NAME
+                )
 
+                if os.path.exists(potential_model_path):
+                    latest_run_dir = folder
+                    logging.info(f" VALID Artifact found: {latest_run_dir}")
+                    break
+                else:
+                    logging.warning(f" Skipping incomplete/corrupted artifact: {folder}")
+
+            if latest_run_dir is None:
+                raise Exception("CRITICAL: No valid model.pth found in any artifact folder.")
 
             logging.info(f"Loading artifacts from latest run: {latest_run_dir}")
 

@@ -14,11 +14,13 @@ from MeOx.entity.artifact_entity import DataIngestionArtifact, DataValidationArt
 
 
 class TrainingPipeline:
-    def __init__(self):
+    def __init__(self,stop_hook=None):
         self.training_pipeline_config = TrainingPipelineConfig()
+        self.stop_hook = stop_hook
 
     def start_data_ingestion(self):
         try:
+            if self.stop_hook: self.stop_hook()
             logging.info(">>>>> STAGE 1: Data Ingestion Started <<<<<")
 
             data_ingestion_config = DataIngestionConfig(training_pipeline_config=self.training_pipeline_config)
@@ -35,6 +37,7 @@ class TrainingPipeline:
 
     def start_data_validation(self, data_ingestion_artifact: DataIngestionArtifact):
         try:
+            if self.stop_hook: self.stop_hook()
             logging.info(">>>>> STAGE 2: Data Validation Started <<<<<")
 
             data_validation_config = DataValidationConfig(training_pipeline_config=self.training_pipeline_config)
@@ -53,6 +56,7 @@ class TrainingPipeline:
 
     def start_data_transformation(self, data_validation_artifact: DataValidationArtifact):
         try:
+            if self.stop_hook: self.stop_hook()
             if not data_validation_artifact.validation_status:
                 raise Exception("Data Validation failed. Pipeline stopped.")
 
@@ -76,12 +80,14 @@ class TrainingPipeline:
 
     def start_model_trainer(self, data_transformation_artifact: DataTransformationArtifact)-> ModelTrainerArtifact:
         try:
+            if self.stop_hook: self.stop_hook()
             logging.info(">>>>> STAGE 4: Model Trainer Started <<<<<")
 
             model_trainer_config = ModelTrainerConfig(training_pipeline_config=self.training_pipeline_config)
             model_trainer = ModelTrainer(
                 model_trainer_config=model_trainer_config,
-                data_transformation_artifact=data_transformation_artifact
+                data_transformation_artifact=data_transformation_artifact,
+                stop_hook=self.stop_hook
             )
 
             model_trainer_artifact = model_trainer.initiate_model_trainer()

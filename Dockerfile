@@ -16,7 +16,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-
 RUN chown -R meoxgat:meoxgroup /app
 
 EXPOSE 5000

@@ -66,10 +66,11 @@ class GAT(nn.Module):
 
 class ModelTrainer:
     def __init__(self, model_trainer_config: ModelTrainerConfig,
-                 data_transformation_artifact: DataTransformationArtifact):
+                 data_transformation_artifact: DataTransformationArtifact,stop_hook=None):
         try:
             self.model_trainer_config = model_trainer_config
             self.data_transformation_artifact = data_transformation_artifact
+            self.stop_hook = stop_hook
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             self.set_seed(MODEL_TRAINER_RANDOM_SEED)
         except Exception as e:
@@ -111,6 +112,7 @@ class ModelTrainer:
         fold_scores = []
 
         for fold, (train_idx_rel, val_idx_rel) in enumerate(skf.split(train_indices_for_cv, y_train)):
+            if self.stop_hook: self.stop_hook()
             fold_train_idx = torch.tensor(train_indices_for_cv[train_idx_rel], device=self.device)
             fold_val_idx = torch.tensor(train_indices_for_cv[val_idx_rel], device=self.device)
 
@@ -127,6 +129,7 @@ class ModelTrainer:
             wait = 0
 
             for epoch in range(MODEL_TRAINER_MAX_EPOCHS_OPTUNA):
+                if self.stop_hook: self.stop_hook()
                 model.train()
                 optimizer.zero_grad()
                 logits = model(data.x, data.edge_index)
@@ -174,6 +177,7 @@ class ModelTrainer:
         best_f1_val, wait, best_state = -1.0, 0, None
 
         for epoch in range(MODEL_TRAINER_MAX_EPOCHS_FINAL):
+            if self.stop_hook: self.stop_hook()
             model.train()
             optimizer.zero_grad()
             logits = model(data.x, data.edge_index)
@@ -269,6 +273,7 @@ class ModelTrainer:
             logging.info(f"Best CV Score (Bal Acc): {study.best_value:.4f}")
 
             logging.info("Training Final Model with Best Params...")
+            if self.stop_hook: self.stop_hook()
             tr_idx_final, val_idx_final = train_test_split(
                 train_indices, test_size=0.2, stratify=labels_all[train_indices], random_state=MODEL_TRAINER_RANDOM_SEED
             )

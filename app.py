@@ -186,6 +186,8 @@ async def training_route():
 
             train_pipeline = TrainingPipeline()
             yield "Ingesting Data...\n"
+            yield "Crafting Graph...\n"
+            yield "Training Model...\n"
 
             model_trainer_artifact = train_pipeline.run_pipeline()
             if model_trainer_artifact:
@@ -204,13 +206,29 @@ async def training_route():
             error_msg = str(e)
             yield f"STOPPED: {error_msg}\n"
 
-            if "User Cancelled" in error_msg and new_artifact_dir and os.path.exists(new_artifact_dir):
-                yield "🧹 Cleaning up corrupted artifacts...\n"
+            if "User Cancelled" in error_msg:
+                yield " Initiating cleaning protocol...\n"
                 try:
-                    shutil.rmtree(new_artifact_dir)  # BORRA LA CARPETA MALA
-                    yield "System Safe. Reverted to previous model.\n"
-                except:
-                    yield "Warning: Could not delete temp files.\n"
+                    import shutil
+                    root_dir = os.path.join(os.getcwd(), "artifacts")
+
+                    if os.path.exists(root_dir):
+                        subdirs = [os.path.join(root_dir, d) for d in os.listdir(root_dir) if
+                                   os.path.isdir(os.path.join(root_dir, d))]
+
+                        if subdirs:
+                            latest_dir = max(subdirs, key=os.path.getmtime)
+
+                            model_path = os.path.join(latest_dir, "model_trainer", "trained_model", "model.pth")
+
+                            if not os.path.exists(model_path):
+                                shutil.rmtree(latest_dir)
+                                yield f" Corrupt folder successfully deleted: {os.path.basename(latest_dir)}\n"
+                            else:
+                                yield f" The last folder appears to be valid; it was not deleted..\n"
+
+                except Exception as clean_error:
+                    yield f" Warning: Temporary files could not be deleted: {clean_error}\n"
             # --------------------------------
 
         finally:

@@ -73,20 +73,25 @@ The primary objective was to bridge the gap between **Computational Chemistry** 
 ---
 
 
-## Installation & Deployment
+## How to Run MeOx:GAT
 
-### Option A: Docker (Recommended)
+Choose the execution method that best fits your needs:
 
-The fastest way to deploy the full system.
+### Option A: Quick Start via Docker Hub (Recommended)
+The fastest way to test the platform. Run the pre-built image directly from Docker Hub without cloning the repository.
 
 ```bash
-## Option A: Docker Execution (Recommended)
+# 1. Pull and run the container in one step
+docker run -p 5000:5000 carlosrgdot/meox-gat:latest
+
+# 2. Access the App
+# Open your browser at: http://localhost:5000
 
 # 1. Clone the repository
-git clone https://github.com/carlosrgdot/MeOx_Docker_Edition.git
-cd MeOx_Docker_Edition
+git clone https://github.com/carlosrgdot/MeOx-GAT-AI-Toxicity-Prediction.git
+cd MeOx-GAT-AI-Toxicity-Prediction
 
-# 2. Build the image 
+# 2. Build the image locally
 docker build -t meox-platform .
 
 # 3. Run the container
@@ -94,24 +99,7 @@ docker run -p 5000:5000 meox-platform
 
 # 4. Access the App
 # Open your browser at: http://localhost:5000
-
-## Option B: Local Execution (Python)
-
-# 1. Create a virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate   # Windows
-
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Start the server
-python app.py
-
-# 4. Access the App
-# Open your browser at: http://localhost:5000
 ```
-
 ---
 
 ## ⚠️ Important Disclaimer

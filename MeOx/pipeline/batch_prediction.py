@@ -1,6 +1,7 @@
 import sys
 import os
 import pandas as pd
+import numpy as np
 import asyncio
 from MeOx.exception.exception import MeOxException
 from MeOx.logging.logger import logging
@@ -22,26 +23,32 @@ class BatchPrediction:
         try:
             logging.info(f"Starting batch prediction for file: {input_file_path}")
 
-            df = pd.read_csv(input_file_path)
+            df = pd.read_csv(input_file_path,dtype=str)
 
             cols_check = ["Exposure dose (ug/mL)", "Exposure time"]
             needs_comma_fix = False
             for col in cols_check:
-                if col in df.columns and df[col].dtype == 'O':
-                    needs_comma_fix = True
-
-            if needs_comma_fix:
-                logging.info("Detectado formato con comas (Europeo). Aplicando corrección...")
-                df = pd.read_csv(input_file_path, decimal=',')
-
-            for col in cols_check:
-                if col in df.columns:
-                    df[col] = df[col].astype(str).str.replace(',', '.').astype(float)
+                df[col] = df[col].str.replace(',', '.', regex=False)
+                df[col] = pd.to_numeric(df[col], errors='coerce')
 
             required_cols = ["Exposure dose (ug/mL)", "Exposure time", "Material type"]
+            df = df[required_cols].copy()
             if not all(col in df.columns for col in required_cols):
                 missing = [c for c in required_cols if c not in df.columns]
-                raise Exception(f"El CSV debe contener las columnas: {required_cols}. Faltan: {missing}")
+                raise Exception(f"The CSV file must contain the following columns: {required_cols}. Mising: {missing}")
+
+            df = df[required_cols].copy()
+            initial_count = len(df)
+            df.dropna(inplace=True)
+
+            final_count = len(df)
+            dropped = initial_count - final_count
+
+            if dropped > 0:
+                logging.warning(f"Ignoring {dropped} rows because they have empty values in required columns")
+
+            if df.empty:
+                raise Exception("The file has no valid rows to process.")
 
             logging.info("Loading Prediction Model...")
             prediction_pipeline = PredictionPipeline()
@@ -71,6 +78,8 @@ class BatchPrediction:
 
             df["MeOx_Prediction"] = predictions
             df["Confidence_Score"] = confidences
+
+
 
             output_file_name = f"prediction_{os.path.basename(input_file_path)}"
             output_file_path = os.path.join(self.prediction_dir, output_file_name)
